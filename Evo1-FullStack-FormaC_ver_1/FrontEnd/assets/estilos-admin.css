@@ -1,0 +1,75 @@
+/* ============================================================
+   estilos-admin.css
+   Mismo esqueleto que estilos.css, pero con una paleta seria y
+   oscura (azul marino) para el panel de Administración.
+   ============================================================ */
+
+body{
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background-color: #eef1f5;
+    color: #333;
+}
+header{
+    background-color: #1c2833;
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+header h1{
+    margin: 0 0 15px 0;
+}
+nav a{
+    color:white;
+    text-decoration: none;
+    margin: 0 10px;
+    font-weight: bold;
+}
+nav a:hover{
+    text-decoration:underline;
+}
+main{
+    width: 90%;
+    max-width: 1000px;
+    margin: 30px auto;
+}
+section{
+    background-color: white;
+    padding: 25px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    border: 1px solid #d5d8dc;
+}
+
+h2{
+    color:#1c2833;
+}
+article{
+    padding: 10px;
+}
+button{
+    background-color: #2c3e50;
+    color: white;
+    border:none;
+    padding: 12px 20px;
+    border-radius:5px;
+    cursor: pointer;
+}
+button:hover{
+    background-color: #1c2833;
+}
+footer{
+    background-color: #17202a;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+/* Aviso de sección pendiente de desarrollo (placeholder) */
+.placeholder{
+    border: 2px dashed #aeb6bf;
+    background-color: #f4f6f7;
+    padding: 20px;
+    border-radius: 8px;
+    color: #566573;
+}

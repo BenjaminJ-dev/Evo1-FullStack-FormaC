@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Operador</title>
+    <link rel="stylesheet" href="../assets/estilos-operador.css">
+</head>
+<body>
+    <header>
+        <h1>Distribuidora de gas El Volcán - Operador</h1>
+        <nav>
+            <span id="saludoOperador"></span>
+            <a href="login.html" id="botonCerrarSesion">Cerrar sesión</a>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h2>Pedidos realizados</h2>
+            <p>Revisa los pedidos de los clientes y actualiza su estado de entrega.</p>
+            <table id="tablaPedidos">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Dirección</th>
+                        <th>Cilindro</th>
+                        <th>Cantidad</th>
+                        <th>Estado</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpoTablaPedidos">
+                    <!-- Las filas se generan dinámicamente con operador.js -->
+                </tbody>
+            </table>
+            <p id="mensajePedidos"></p>
+        </section>
+
+        <section>
+            <h2>Inventario de productos</h2>
+            <p>Stock disponible de cada tipo de cilindro.</p>
+            <table id="tablaInventario">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Precio</th>
+                        <th>Stock disponible</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpoTablaInventario">
+                    <!-- Las filas se generan dinámicamente con operador.js -->
+                </tbody>
+            </table>
+        </section>
+    </main>
+    <footer>
+        <p>Gas El Volcan - Chillan</p>
+        <p>2026. Gas El Volcan</p>
+    </footer>
+    <script src="../js/datos.js"></script>
+    <script src="../js/operador.js"></script>
+</body>
+</html>

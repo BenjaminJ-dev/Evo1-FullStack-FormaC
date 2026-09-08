@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis pedidos</title>
+    <link rel="stylesheet" href="../assets/estilos.css">
+</head>
+<body>
+    <header>
+        <h1>Distribuidora de gas El Volcan</h1>
+        <nav>
+            <a href="index.html">Inicio</a>
+            <a href="productos.html">Productos</a>
+            <a href="pedido.html">Realizar pedido</a>
+            <a href="mis-pedidos.html">Mis pedidos</a>
+            <span id="saludoCliente"></span>
+            <a href="login.html" id="botonCerrarSesion">Cerrar sesión</a>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h2>Mis pedidos</h2>
+            <p>Aquí puedes ver el historial y el estado de tus pedidos.</p>
+            <table id="tablaMisPedidos">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Cilindro</th>
+                        <th>Cantidad</th>
+                        <th>Dirección</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpoTablaMisPedidos">
+                    <!-- Las filas se generan dinámicamente con mis-pedidos.js -->
+                </tbody>
+            </table>
+            <p id="mensajeMisPedidos"></p>
+        </section>
+    </main>
+    <footer>
+        <p>Gas El Volcan - Chillan</p>
+        <p>2026. Gas El Volcan</p>
+    </footer>
+    <script src="../js/datos.js"></script>
+    <script src="../js/mis-pedidos.js"></script>
+</body>
+</html>

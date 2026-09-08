@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedidos</title>
+
+    <link rel="stylesheet" href="../assets/estilos.css">
+    
+</head>
+<body>
+    <header>
+        <h1>Distribuidora de gas El Volcan</h1>
+        <nav>
+            <a href="index.html">Inicio</a>
+            <a href="productos.html">Productos</a>
+            <a href="pedido.html">Realizar pedido</a>
+            <a href="mis-pedidos.html">Mis pedidos</a>
+            <span id="saludoCliente"></span>
+            <a href="login.html" id="botonCerrarSesion">Cerrar sesión</a>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h2>Realizar pedido</h2>
+            <p>Completa el formulario para solicitar tu cilindro de gas</p>
+            <form id="formularioPedido">
+                <label for="nombre">Nombre Completo</label>
+                <input
+                    type="text"
+                    id="nombre"
+                    name="nombre"
+                    placeholder="Juan Alberto Perez Muñoz" 
+                    autocomplete="name"
+                >
+                <br><br>
+                <label for="telefono">Teléfono</label>
+                <input
+                    type="tel"
+                    id="telefono"
+                    name="telefono"
+                    placeholder="9xxxxxxxx"
+                    autocomplete="tel" 
+                >
+                <br><br>
+                <label for="direccion"> Dirección:</label>
+                <input
+                    type="text"
+                    id="direccion"
+                    name="direccion"
+                    placeholder="Av Principal 123"
+                    autocomplete="street-address"
+                >
+                <br><br>
+                <label for="cilindro">Tipo de cilindro</label>
+                <select id="cilindro" name="cilindro">
+                    <option value="">Selecciona un cilindro</option>
+                    <option value="5KG">Cilindro GLP 5 kg</option>
+                    <option value="11KG">Cilindro GLP 11 kg</option>
+                    <option value="15KG">Cilindro GLP 15 kg</option>
+                    <option value="45KG">Cilindro GLP 45 kg</option>
+                </select>
+                <br><br>
+                <label for="cantidad">Cantidad</label>
+                <input
+                    type="number"
+                    id="cantidad"
+                    name="cantidad"
+                    min="1"
+                    max="10"
+                    placeholder="1-10"
+                >
+                <br><br>
+                <button type="submit">Enviar pedido</button>
+                <p id="mensaje"></p>                
+        </section>
+    </main>
+    <footer>
+        <p>Gas El Volcan - Chillan</p>
+        <p>2026. Gas El Volcan</p>
+    </footer>
+    <script src="../js/datos.js"></script>
+    <script src="../js/Script.js"></script>
+</body>
+</html>

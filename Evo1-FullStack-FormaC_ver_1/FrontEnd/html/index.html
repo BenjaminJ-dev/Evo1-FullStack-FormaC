@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gas el volcan</title>
+    <link rel="stylesheet" href="../assets/estilos.css">
+</head>
+<body>
+    <header>
+        <h1>Distribuidora de gas El Volcan</h1>
+        <nav>
+            <a href="index.html">Inicio</a>
+            <a href="productos.html">Productos</a>
+            <a href="pedido.html">Realizar pedido</a>
+            <a href="mis-pedidos.html">Mis pedidos</a>
+            <span id="saludoCliente"></span>
+            <a href="login.html" id="botonCerrarSesion">Cerrar sesión</a>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h2>Gas el volcan</h2>
+            <p>Distribuidora de gas a domicilio en Chillan y cercanias</p>
+            <img src="../assets/camion-gas.svg" alt="Camión repartidor de Gas El Volcán" width="320">
+            <br><br>
+            <button onclick="window.location.href='pedido.html'">Realizar pedido</button>
+        </section>
+        <section>
+            <h2>quienes somos?</h2>
+            <article>
+            <h3>Una empresa familiar</h3>
+            <p>Distribuidora de Gas el volcan es una empresa familiar creada en Chillan fundada en el año 1998</p>
+            </article>
+        </section>
+        <section>
+            <h2>Conócenos en video</h2>
+            <!-- TODO: reemplazar por el video institucional real de la empresa cuando esté grabado -->
+            <iframe width="560" height="315" src="https://www.youtube.com/embed/ysz5S6PUM-U" title="Video institucional Gas El Volcán" frameborder="0" allowfullscreen></iframe>
+        </section>
+    </main>
+    <footer>
+        <p>Gas El Volcan - Chillan</p>
+        <p>2026. Gas El Volcan</p>
+    </footer>
+    <script src="../js/datos.js"></script>
+    <script>
+        // Protección de la vista: solo un cliente logueado puede entrar.
+        const sesion = exigirSesion(["cliente"]);
+        if (sesion) {
+            document.getElementById("saludoCliente").textContent = "Hola, " + sesion.nombre;
+        }
+        document.getElementById("botonCerrarSesion").addEventListener("click", function () {
+            cerrarSesion();
+        });
+    </script>
+</body>
+</html>

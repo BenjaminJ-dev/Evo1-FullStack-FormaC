@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar sesión</title>
+    <link rel="stylesheet" href="../assets/estilos.css">
+</head>
+<body>
+    <header>
+        <h1>Distribuidora de gas El Volcán</h1>
+        <nav>
+            <a href="index.html">Inicio</a>
+            <a href="productos.html">Productos</a>
+            <a href="pedido.html">Realizar pedido</a>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h2>Iniciar sesión</h2>
+            <p>Ingresa tus credenciales para acceder al sistema</p>
+            <form id="formularioLogin" autocomplete="on">
+                <label for="usuario">Usuario</label>
+                <input
+                    type="text"
+                    id="usuario"
+                    name="usuario"
+                    placeholder="Ingresa tu usuario"
+                    autocomplete="username"
+                >
+                <br><br>
+                <label for="password">Contraseña</label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Ingresa tu contraseña"
+                    autocomplete="current-password"
+                >
+                <br><br>
+                <button type="submit">Ingresar</button>
+                <p id="mensaje"></p>
+            </form>
+            <p>¿No tienes cuenta? <a href="registro.html">Regístrate aquí</a></p>
+        </section>
+    </main>
+    <footer>
+        <p>Gas El Volcan - Chillan</p>
+        <p>2026. Gas El Volcan</p>
+    </footer>
+    <script src="../js/datos.js"></script>
+    <script src="../js/login.js"></script>
+</body>
+</html>

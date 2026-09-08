@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración</title>
+    <link rel="stylesheet" href="../assets/estilos-admin.css">
+</head>
+<body>
+    <header>
+        <h1>Distribuidora de gas El Volcán - Administración</h1>
+        <nav>
+            <span id="saludoAdmin"></span>
+            <a href="login.html" id="botonCerrarSesion">Cerrar sesión</a>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h2>Panel de administración</h2>
+            <p>Desde aquí la administradora puede supervisar el sistema completo.</p>
+        </section>
+
+        <!--
+            Apartado de gestión de usuarios.
+            Por ahora es solo la estructura visual (HTML), sin funcionalidad.
+            TODO (entrega futura): implementar en JS la creación, edición y
+            desactivación de usuarios (clientes y operadores), conectado a
+            un backend real con su respectiva base de datos y control de roles.
+        -->
+        <section>
+            <h2>Gestión de usuarios</h2>
+            <div class="placeholder">
+                <p>Este apartado permitirá crear, editar y desactivar cuentas de clientes y operadores.</p>
+                <p><strong>Funcionalidad pendiente para una entrega posterior.</strong></p>
+                <button type="button" disabled>Crear usuario (próximamente)</button>
+            </div>
+        </section>
+
+        <section>
+            <h2>Reportes</h2>
+            <div class="placeholder">
+                <p>Aquí se mostrarán reportes generales de pedidos, stock y ventas.</p>
+                <p><strong>Funcionalidad pendiente para una entrega posterior.</strong></p>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>Gas El Volcan - Chillan</p>
+        <p>2026. Gas El Volcan</p>
+    </footer>
+    <script src="../js/datos.js"></script>
+    <script>
+        // Protección de la vista: solo rol "admin" puede entrar.
+        // (exigirSesion está definida en datos.js)
+        const sesion = exigirSesion(["admin"]);
+        if (sesion) {
+            document.getElementById("saludoAdmin").textContent = "Hola, " + sesion.nombre;
+        }
+
+        document.getElementById("botonCerrarSesion").addEventListener("click", function () {
+            cerrarSesion();
+        });
+    </script>
+</body>
+</html>

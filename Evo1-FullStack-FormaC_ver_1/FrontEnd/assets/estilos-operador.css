@@ -1,0 +1,98 @@
+/* ============================================================
+   estilos-operador.css
+   Mismo esqueleto que estilos.css, pero con una paleta de colores
+   apagada (grises y azul grisáceo) para diferenciar visualmente
+   el panel del Operador respecto del sitio del cliente.
+   ============================================================ */
+
+body{
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background-color: #eceff1;
+    color: #333;
+}
+header{
+    background-color: #546e7a;
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+header h1{
+    margin: 0 0 15px 0;
+}
+nav a{
+    color:white;
+    text-decoration: none;
+    margin: 0 10px;
+    font-weight: bold;
+}
+nav a:hover{
+    text-decoration:underline;
+}
+main{
+    width: 90%;
+    max-width: 1000px;
+    margin: 30px auto;
+}
+section{
+    background-color: white;
+    padding: 25px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    border: 1px solid #cfd8dc;
+}
+
+h2{
+    color:#546e7a;
+}
+article{
+    padding: 10px;
+}
+button{
+    background-color: #607d8b;
+    color: white;
+    border:none;
+    padding: 12px 20px;
+    border-radius:5px;
+    cursor: pointer;
+}
+button:hover{
+    background-color: #455a64;
+}
+footer{
+    background-color: #37474f;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+/* Elementos propios del panel de operador */
+table{
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+th, td{
+    text-align: left;
+    padding: 10px;
+    border-bottom: 1px solid #cfd8dc;
+}
+th{
+    background-color: #eceff1;
+}
+.estado{
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 0.85em;
+    font-weight: bold;
+    color: white;
+}
+.estado-pendiente{
+    background-color: #90a4ae;
+}
+.estado-en-camino{
+    background-color: #78909c;
+}
+.estado-entregado{
+    background-color: #546e7a;
+}

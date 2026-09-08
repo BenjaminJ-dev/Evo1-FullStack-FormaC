@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productos</title>
+    <link rel="stylesheet" href="../assets/estilos.css">
+</head>
+<body>
+    <header>
+        <h1> Distribuidora de gas El Volcan</h1>
+        <nav>
+            <a href="index.html">Inicio</a>
+            <a href="productos.html">Productos</a>
+            <a href="pedido.html">Realizar pedido</a>
+            <a href="mis-pedidos.html">Mis pedidos</a>
+            <span id="saludoCliente"></span>
+            <a href="login.html" id="botonCerrarSesion">Cerrar sesión</a>
+        </nav>
+    </header>
+    <main>
+        <section>
+        <h2>Nuestros productos</h2>
+        <p>
+            Revisa nuestros productos disponibles
+        </p>
+        </section>
+        <section>
+            <article>
+                <img src="../assets/cilindro-gas.svg" alt="Cilindro de gas GLP 5 kilos" width="90">
+                <h3>Cilindro GLP 5KG</h3>
+                <p>Ideal para uso residencial</p>
+                <p><strong>Precio:$6.000</strong></p>
+                <button onclick="window.location.href='pedido.html?cilindro=5KG'">Comprar</button>
+            </article>
+            <article>
+                <img src="../assets/cilindro-gas.svg" alt="Cilindro de gas GLP 11 kilos" width="90">
+                <h3>Cilindro GLP 11KG</h3>
+                <p>Cilindro Estandar para el hogar</p>
+                <p><strong>Precio:$11.000</strong></p>
+                <button onclick="window.location.href='pedido.html?cilindro=11KG'">Comprar</button>
+            </article>
+            <article>
+                <img src="../assets/cilindro-gas.svg" alt="Cilindro de gas GLP 15 kilos" width="90">
+                <h3>Cilindro GLP 15KG</h3>
+                <p>Para hogares de mayor consumo</p>
+                <p><strong>Precio: $14.500</strong></p>
+                <button onclick="window.location.href='pedido.html?cilindro=15KG'">Comprar</button>
+            </article>
+            <article>
+                <img src="../assets/cilindro-gas.svg" alt="Cilindro de gas GLP 45 kilos" width="90">
+                <h3>Cilindro GLP 45KG</h3>
+                <p>Uso comercial</p>
+                <p><strong>Precio: $40.000</strong></p>
+                <button onclick="window.location.href='pedido.html?cilindro=45KG'">Comprar</button>
+            </article>
+        </section>
+        <section>
+            <h2>Accesorios</h2>
+            <article>
+                <h3>Regulador Domestico Estandar</h3>
+                <p>Precio: $8.200</p>
+                <button onclick="window.location.href='pedido.html'">Comprar</button>
+            </article>
+            <article>
+                <h3>Manguera de gas 1.5M</h3>
+                <p>Precio: $3.500</p>
+                <button onclick="window.location.href='pedido.html'">Comprar</button>
+            </article>
+            <article>
+                <h3>Detector de gas</h3>
+                <p>Precio: $17.000</p>
+                <button onclick="window.location.href='pedido.html'">Comprar</button>
+            </article>
+        </section>
+    </main> 
+    <footer>
+        <p>Gas El Volcan - Chillan</p>
+        <p>2026. Gas El Volcan</p>
+    </footer>
+    <script src="../js/datos.js"></script>
+    <script>
+        // Protección de la vista: solo un cliente logueado puede entrar.
+        const sesion = exigirSesion(["cliente"]);
+        if (sesion) {
+            document.getElementById("saludoCliente").textContent = "Hola, " + sesion.nombre;
+        }
+        document.getElementById("botonCerrarSesion").addEventListener("click", function () {
+            cerrarSesion();
+        });
+    </script>
+</body>
+</html>
