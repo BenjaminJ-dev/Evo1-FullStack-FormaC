@@ -1,0 +1,113 @@
+/* ============================================================
+   temas.css
+   UN solo diseño para todo el sitio (el del cliente). Los 3 temas solo
+   cambian los COLORES, redefiniendo 4 variables:
+     --tema-principal : barra, botones, títulos y enlaces
+     --tema-oscuro    : botones al pasar el mouse
+     --tema-fondo     : fondo de la página
+     --tema-pie       : pie de página
+   El componente Layout agrega la clase del tema según el rol.
+   ============================================================ */
+
+.tema-cliente {                 /* naranja */
+  --tema-principal: #d35400;
+  --tema-oscuro: #a04000;
+  --tema-fondo: #f5f5f5;
+  --tema-pie: #333333;
+}
+.tema-operador {                /* grises apagados */
+  --tema-principal: #546e7a;
+  --tema-oscuro: #37474f;
+  --tema-fondo: #eceff1;
+  --tema-pie: #37474f;
+}
+.tema-admin {                   /* azul marino */
+  --tema-principal: #1c2833;
+  --tema-oscuro: #17202a;
+  --tema-fondo: #eef1f5;
+  --tema-pie: #17202a;
+}
+
+/* ---------- Diseño común (usa las variables del tema) ---------- */
+.tema {
+  background-color: var(--tema-fondo);
+  color: #333;
+}
+.tema h2 {
+  color: var(--tema-principal);
+}
+.tema a:not(.btn):not(.nav-link):not(.navbar-brand) {
+  color: var(--tema-principal);
+}
+.barra-tema {
+  background-color: var(--tema-principal);
+}
+.pie-tema {
+  background-color: var(--tema-pie);
+  color: #fff;
+}
+
+/* Bootstrap define los colores de sus botones con variables propias:
+   aquí se reemplazan por las del tema. */
+.tema .btn-primary {
+  --bs-btn-bg: var(--tema-principal);
+  --bs-btn-border-color: var(--tema-principal);
+  --bs-btn-hover-bg: var(--tema-oscuro);
+  --bs-btn-hover-border-color: var(--tema-oscuro);
+  --bs-btn-active-bg: var(--tema-oscuro);
+  --bs-btn-active-border-color: var(--tema-oscuro);
+  --bs-btn-disabled-bg: var(--tema-principal);
+  --bs-btn-disabled-border-color: var(--tema-principal);
+}
+.tema .btn-outline-primary {
+  --bs-btn-color: var(--tema-principal);
+  --bs-btn-border-color: var(--tema-principal);
+  --bs-btn-hover-bg: var(--tema-principal);
+  --bs-btn-hover-border-color: var(--tema-principal);
+  --bs-btn-active-bg: var(--tema-oscuro);
+  --bs-btn-active-border-color: var(--tema-oscuro);
+}
+.tema .form-control:focus,
+.tema .form-select:focus {
+  border-color: var(--tema-principal);
+  box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.1);
+}
+
+/* ---------- Banner de avisos (fijo arriba de toda la página) ---------- */
+.banner-mensaje {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2000;
+  font-weight: bold;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+.banner-mensaje.alert-danger {
+  --bs-alert-bg: #c0392b;
+  --bs-alert-border-color: #c0392b;
+  --bs-alert-color: #fff;
+}
+.banner-mensaje.alert-success {
+  --bs-alert-bg: #27ae60;
+  --bs-alert-border-color: #27ae60;
+  --bs-alert-color: #fff;
+}
+.banner-mensaje .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* ---------- Detalles ---------- */
+.imagen-producto {
+  height: 140px;
+  object-fit: contain;
+}
+.imagen-camion {
+  max-width: 320px;
+}
+.placeholder-admin {
+  border: 2px dashed #aeb6bf;
+  background-color: #f4f6f7;
+  color: #566573;
+}
