@@ -48,3 +48,28 @@ Swagger UI: `http://localhost:8080/swagger-ui/index.html`; OpenAPI JSON: `http:/
 `./mvnw.cmd verify` ejecuta `BackendTest` con H2 en memoria aislada: CRUD, semilla, historial, stock, concurrencia, permisos, JWT, renovación, expiración y Swagger. Después de generar el JAR, `python verificar_persistencia.py` lo inicia dos veces con H2 en archivo temporal y un secreto JWT generado para la prueba; comprueba persistencia tras reinicio sin tocar `data/`. El frontend se inicia desde la raíz con `npm ci`, `npm run dev`, `npm test` y `npm run build`.
 
 Limitaciones: los cuatro productos iniciales son datos de demostración; no se generan clientes ni pedidos ficticios. No hay ajuste/reposición de stock, pagos, paginación ni idempotencia en creación de pedidos. Un reintento tras perder la respuesta podría crear un segundo pedido si queda stock. Para despliegue real se requieren HTTPS, secreto propio y migraciones versionadas en lugar de `ddl-auto=update`.
+
+
+## Consultar la base de datos H2
+
+La consola web de H2 está deshabilitada en la aplicación, por lo que se abre por separado con el jar de H2 que Maven ya descargó. Sirve para ver las tablas y ejecutar consultas.
+
+1. Detén el backend con `Ctrl + C`. El archivo H2 solo admite un proceso a la vez.
+2. Ubica el jar de H2:
+
+   ```powershell
+   Get-ChildItem "$env:USERPROFILE\.m2\repository\com\h2database\h2" -Recurse -Filter *.jar
+   ```
+
+3. Con `JAVA_HOME` apuntando al JDK 21, abre la consola (ajusta la versión del jar si es distinta):
+
+   ```powershell
+   & "$env:JAVA_HOME\bin\java.exe" -jar "$env:USERPROFILE\.m2\repository\com\h2database\h2\2.4.240\h2-2.4.240.jar"
+   ```
+
+4. En la pestaña que se abre en el navegador, completa:
+   - **URL JDBC:** `jdbc:h2:file:<ruta del proyecto>/backend/data/elvolcan;IFEXISTS=TRUE` (usa `/` en la ruta; `IFEXISTS=TRUE` evita crear una base vacía si la ruta está mal)
+   - **Usuario:** `sa`
+   - **Contraseña:** vacía
+5. Pulsa **Conectar**. Las tablas aparecen en el panel izquierdo; al hacer clic en una, H2 escribe el `SELECT`. Las contraseñas se ven como hash BCrypt.
+6. Al terminar, cierra la consola con `Ctrl + C` en su terminal y vuelve a arrancar el backend.
