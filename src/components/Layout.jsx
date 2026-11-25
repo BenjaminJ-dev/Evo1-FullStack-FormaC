@@ -31,30 +31,40 @@ export default function Layout() {
       <header>
         <Navbar expand="md" variant="dark" className="barra-tema">
           <Container>
-            <Navbar.Brand as={Link} to={sesion ? rutaInicioPorRol(rol) : '/login'}>
+            <Navbar.Brand as={Link} to={sesion ? rutaInicioPorRol(rol) : '/'}>
               Distribuidora de gas El Volcán{tema.sufijo}
             </Navbar.Brand>
 
-            {/* Sin sesión (login y registro) no se muestra ningún menú */}
-            {sesion && <Navbar.Toggle aria-controls="menu-principal" />}
-            {sesion && (
-              <Navbar.Collapse id="menu-principal">
-                {rol === ROLES.CLIENTE && (
-                  <Nav className="me-auto">
-                    <Nav.Link as={NavLink} to="/" end>Inicio</Nav.Link>
-                    <Nav.Link as={NavLink} to="/productos">Productos</Nav.Link>
-                    <Nav.Link as={NavLink} to="/pedido">Realizar pedido</Nav.Link>
-                    <Nav.Link as={NavLink} to="/mis-pedidos">Mis pedidos</Nav.Link>
-                  </Nav>
-                )}
-                <Nav className="ms-auto align-items-md-center">
-                  <Navbar.Text className="me-md-3">Hola, {sesion.nombre}</Navbar.Text>
-                  <Button variant="outline-light" size="sm" onClick={cerrarSesion}>
-                    Cerrar sesión
-                  </Button>
+            <Navbar.Toggle aria-controls="menu-principal" />
+            <Navbar.Collapse id="menu-principal">
+              {(!sesion || rol === ROLES.CLIENTE) && (
+                <Nav className="me-auto">
+                  <Nav.Link as={NavLink} to="/" end>Inicio</Nav.Link>
+                  <Nav.Link as={NavLink} to="/productos">Productos</Nav.Link>
+                  {rol === ROLES.CLIENTE && (
+                    <>
+                      <Nav.Link as={NavLink} to="/pedido">Realizar pedido</Nav.Link>
+                      <Nav.Link as={NavLink} to="/mis-pedidos">Mis pedidos</Nav.Link>
+                    </>
+                  )}
                 </Nav>
-              </Navbar.Collapse>
-            )}
+              )}
+              <Nav className="ms-auto align-items-md-center">
+                {sesion ? (
+                  <>
+                    <Navbar.Text className="me-md-3">Hola, {sesion.nombre}</Navbar.Text>
+                    <Button variant="outline-light" size="sm" onClick={cerrarSesion}>
+                      Cerrar sesión
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Nav.Link as={NavLink} to="/login">Iniciar sesión</Nav.Link>
+                    <Nav.Link as={NavLink} to="/registro">Registrarse</Nav.Link>
+                  </>
+                )}
+              </Nav>
+            </Navbar.Collapse>
           </Container>
         </Navbar>
       </header>

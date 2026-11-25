@@ -1,3 +1,4 @@
+import { obtenerProducto } from '../services/productosServicio';
 // src/components/TablaPedidos.jsx
 // Tabla de pedidos usada en DOS pantallas, según la prop "modo":
 //   modo="cliente"  -> "Mis pedidos" (solo ve los suyos y puede cancelar)
@@ -8,7 +9,7 @@
 import Table from 'react-bootstrap/Table';
 import Badge from 'react-bootstrap/Badge';
 import Button from 'react-bootstrap/Button';
-import { ESTADOS, formatearPesos, obtenerProducto } from '../constantes';
+import { ESTADOS, formatearPesos } from '../constantes';
 import { calcularTotalPedido, sePuedeCancelar, siguienteEstado } from '../services/pedidosServicio';
 
 const COLOR_ESTADO = {
@@ -28,8 +29,11 @@ export default function TablaPedidos({
   onAvanzar,
   onCancelarItem,
   onCancelarPedido,
+  onVerDetalle,
+  procesando = false,
 }) {
-  const esOperador = modo === 'operador';
+  const consulta = modo === 'admin';
+  const esOperador = modo === 'operador' || consulta;
 
   // Toda cancelación pide confirmación antes de ejecutarse
   const confirmar = (texto, accion) => {
@@ -48,13 +52,14 @@ export default function TablaPedidos({
           <th>Productos</th>
           <th>Total</th>
           <th>Estado</th>
-          {esOperador && <th>Avanzar</th>}
-          <th>Cancelar</th>
+          {modo === 'cliente' && onVerDetalle && <th>Detalle</th>}
+          {esOperador && !consulta && <th>Avanzar</th>}
+          {!consulta && <th>Cancelar</th>}
         </tr>
       </thead>
       <tbody>
         {pedidos.map((pedido) => {
-          const puedeCancelar = sePuedeCancelar(pedido);
+          const puedeCancelar = !consulta && sePuedeCancelar(pedido);
           const siguiente = siguienteEstado(pedido.estado);
 
           return (
@@ -65,7 +70,7 @@ export default function TablaPedidos({
               <td>
                 <ul className="list-unstyled mb-0">
                   {pedido.items.map((item, indice) => {
-                    const nombre = obtenerProducto(item.cilindro)?.nombre ?? item.cilindro;
+                    const nombre = item.nombre ?? obtenerProducto(item.cilindro)?.nombre ?? item.cilindro;
                     return (
                       <li key={item.cilindro} className="mb-1">
                         <span className={item.cancelado ? 'text-decoration-line-through text-muted' : ''}>
@@ -75,11 +80,12 @@ export default function TablaPedidos({
                           <Button
                             size="sm"
                             variant="outline-danger"
+                            disabled={procesando}
                             className="ms-2 py-0"
                             aria-label={`Cancelar ${nombre} del pedido`}
                             onClick={() =>
                               confirmar(`¿Seguro que quieres cancelar ${nombre}?`, () =>
-                                onCancelarItem(pedido.id, indice),
+                                onCancelarItem(pedido.id, modo === 'cliente' || item.id != null ? (item.id ?? indice) : indice),
                               )
                             }
                           >
@@ -93,10 +99,11 @@ export default function TablaPedidos({
               </td>
               <td>{formatearPesos(calcularTotalPedido(pedido))}</td>
               <td><EtiquetaEstado estado={pedido.estado} /></td>
-              {esOperador && (
+              {modo === 'cliente' && onVerDetalle && <td><Button size="sm" variant="outline-primary" disabled={procesando} onClick={() => onVerDetalle(pedido.id)}>Ver detalle</Button></td>}
+              {esOperador && !consulta && (
                 <td>
                   {siguiente ? (
-                    <Button size="sm" variant="primary" onClick={() => onAvanzar(pedido.id)}>
+                    <Button size="sm" variant="primary" disabled={procesando} onClick={() => onAvanzar(pedido.id)}>
                       Marcar {siguiente.toLowerCase()}
                     </Button>
                   ) : (
@@ -104,11 +111,11 @@ export default function TablaPedidos({
                   )}
                 </td>
               )}
-              <td>
+              {!consulta && <td>
                 <Button
                   size="sm"
                   variant="danger"
-                  disabled={!puedeCancelar}
+                  disabled={!puedeCancelar || procesando}
                   onClick={() =>
                     confirmar('¿Seguro que quieres cancelar el pedido completo?', () =>
                       onCancelarPedido(pedido.id),
@@ -117,7 +124,7 @@ export default function TablaPedidos({
                 >
                   Cancelar pedido
                 </Button>
-              </td>
+              </td>}
             </tr>
           );
         })}

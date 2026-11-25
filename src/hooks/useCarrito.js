@@ -1,13 +1,14 @@
+import { obtenerProductoCompra } from '../services/productosServicio';
 // src/hooks/useCarrito.js
-// Carrito de la página de pedido: agregar, editar y quitar ítems ANTES de
-// confirmar. Vive solo en memoria (se pierde al recargar la página).
-// Cada acción devuelve { ok: true } o { ok: false, error: 'mensaje' }.
-import { useState } from 'react';
-import { MAX_CANTIDAD, obtenerProducto } from '../constantes';
+// Operaciones del carrito; persistencia opcional suministrada por CarritoProvider.
+import { useEffect, useState } from 'react';
+import { MAX_CANTIDAD } from '../constantes';
 import { validarCantidad } from '../services/validaciones';
 
-export default function useCarrito(maximo = MAX_CANTIDAD) {
-  const [items, setItems] = useState([]); // [{ cilindro, cantidad, precioUnitario }]
+export default function useCarrito(maximo = MAX_CANTIDAD, persistencia = null) {
+  const [items, setItems] = useState(() => persistencia?.leer(maximo) ?? []); // [{ cilindro, cantidad, precioUnitario }]
+
+  useEffect(() => { persistencia?.guardar(items); }, [items, persistencia]);
 
   const cantidadTotal = items.reduce((suma, item) => suma + item.cantidad, 0);
   const total = items.reduce((suma, item) => suma + item.cantidad * item.precioUnitario, 0);
@@ -16,8 +17,8 @@ export default function useCarrito(maximo = MAX_CANTIDAD) {
     if (!cilindro) {
       return { ok: false, error: 'Debes seleccionar un cilindro.' };
     }
-    const producto = obtenerProducto(cilindro);
-    if (!producto) {
+    const producto = obtenerProductoCompra(cilindro);
+    if (!producto?.activo) {
       return { ok: false, error: 'Selecciona un cilindro válido.' };
     }
     if (!validarCantidad(cantidad, maximo)) {
@@ -37,7 +38,7 @@ export default function useCarrito(maximo = MAX_CANTIDAD) {
           item.cilindro === cilindro ? { ...item, cantidad: item.cantidad + cantidad } : item,
         );
       }
-      return [...actuales, { cilindro, cantidad, precioUnitario: producto.precio }];
+      return [...actuales, { cilindro, cantidad, precioUnitario: producto.precio, nombre: producto.nombre }];
     });
     return { ok: true };
   };
@@ -65,5 +66,10 @@ export default function useCarrito(maximo = MAX_CANTIDAD) {
 
   const vaciar = () => setItems([]);
 
-  return { items, cantidadTotal, total, maximo, agregar, editar, quitar, vaciar };
+  const actualizarPrecios = () => setItems(actuales => actuales.map(item => ({ ...item, precioUnitario: obtenerProductoCompra(item.cilindro)?.precio ?? item.precioUnitario })));
+  const actualizarPreciosDesdeCatalogo = (productos) => setItems(actuales => actuales.map(item => {
+    const producto = productos.find(p => p.id === item.cilindro);
+    return producto ? { ...item, precioUnitario: producto.precio, nombre: producto.nombre } : item;
+  }));
+  return { actualizarPrecios, actualizarPreciosDesdeCatalogo, items, cantidadTotal, total, maximo, agregar, editar, quitar, vaciar };
 }

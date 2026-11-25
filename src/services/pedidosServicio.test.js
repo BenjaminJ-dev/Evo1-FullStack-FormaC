@@ -46,13 +46,14 @@ describe('pedidosServicio', () => {
   });
 
   it('rechaza el pedido completo si falta stock y avisa qué producto', () => {
-    expect(crearPedido(datosPedido([item('45KG', 8)])).ok).toBe(true); // usa todo el stock (8)
+    expect(crearPedido(datosPedido([item('45KG', 4)])).ok).toBe(true);
+    expect(crearPedido(datosPedido([item('45KG', 4)])).ok).toBe(true); // usa todo el stock (8)
 
     const resultado = crearPedido(datosPedido([item('5KG', 1), item('45KG', 1)]));
 
     expect(resultado.ok).toBe(false);
     expect(resultado.sinStock).toEqual(['Cilindro GLP 45KG']);
-    expect(obtenerPedidos()).toHaveLength(1); // no se creó el segundo pedido
+    expect(obtenerPedidos()).toHaveLength(2); // no se creó el segundo pedido
   });
 
   it('solo se cancela en "Pendiente" y el Total baja recién al entregar', () => {

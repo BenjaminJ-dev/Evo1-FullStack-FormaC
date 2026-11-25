@@ -1,9 +1,10 @@
 // src/App.jsx
 // Define las rutas del sitio y qué rol puede entrar a cada una.
-//   /login, /registro  -> públicas
-//   /, /productos, /pedido, /mis-pedidos -> solo clientes
+//   /, /productos, /login, /registro -> públicas
+//   /pedido, /mis-pedidos -> solo clientes
 //   /operador -> solo operador      /admin -> solo administrador
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { CarritoProvider } from './context/CarritoContext';
 import Layout from './components/Layout';
 import RutaProtegida from './components/RutaProtegida';
 import PaginaLogin from './pages/PaginaLogin';
@@ -27,14 +28,14 @@ function RutaDesconocida() {
 
 export default function App() {
   return (
-    <Routes>
+    <CarritoProvider><Routes>
       <Route element={<Layout />}>
         <Route path="/login" element={<PaginaLogin />} />
         <Route path="/registro" element={<PaginaRegistro />} />
 
-        <Route path="/" element={<RutaProtegida roles={[ROLES.CLIENTE]}><PaginaInicio /></RutaProtegida>} />
-        <Route path="/productos" element={<RutaProtegida roles={[ROLES.CLIENTE]}><PaginaProductos /></RutaProtegida>} />
-        <Route path="/pedido" element={<RutaProtegida roles={[ROLES.CLIENTE]}><PaginaPedido /></RutaProtegida>} />
+        <Route path="/" element={<PaginaInicio />} />
+        <Route path="/productos" element={<PaginaProductos />} />
+        <Route path="/pedido" element={<RutaProtegida permitirVisitante roles={[ROLES.CLIENTE]}><PaginaPedido /></RutaProtegida>} />
         <Route path="/mis-pedidos" element={<RutaProtegida roles={[ROLES.CLIENTE]}><PaginaMisPedidos /></RutaProtegida>} />
 
         <Route path="/operador" element={<RutaProtegida roles={[ROLES.OPERADOR]}><PaginaOperador /></RutaProtegida>} />
@@ -42,6 +43,6 @@ export default function App() {
 
         <Route path="*" element={<RutaDesconocida />} />
       </Route>
-    </Routes>
+    </Routes></CarritoProvider>
   );
 }

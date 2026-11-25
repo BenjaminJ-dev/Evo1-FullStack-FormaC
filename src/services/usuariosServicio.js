@@ -1,77 +1,22 @@
-// src/services/usuariosServicio.js
-// Usuarios, login, registro y sesión.
-//
-// TODO backend: USUARIOS_INTERNOS y las contraseñas en texto plano existen
-// solo para esta etapa sin servidor. Con backend real, el login será una
-// petición (POST /login) que devuelva un token, y las contraseñas se guardan
-// encriptadas en el servidor. Nunca se deben dejar así en un sistema real.
 import { CLAVES, ROLES } from '../constantes';
-import {
-  leerLocal,
-  guardarLocal,
-  leerSesionNavegador,
-  guardarSesionNavegador,
-  borrarSesionNavegador,
-} from './almacenamiento';
+import { leerLocal } from './almacenamiento';
+import { clienteApi } from './clienteApi';
 
-// Usuarios de la empresa (no se registran, ya existen)
-export const USUARIOS_INTERNOS = [
-  { usuario: 'admin', password: 'admin123', rol: ROLES.ADMIN, nombre: 'Administrador General' },
-  { usuario: 'operador', password: 'operador123', rol: ROLES.OPERADOR, nombre: 'Operador de Turno' },
-];
+const CLAVE_AUTH = 'gasVolcan_auth_v1';
+const roles = { CLIENTE: ROLES.CLIENTE, OPERADOR: ROLES.OPERADOR, ADMINISTRADOR: ROLES.ADMIN };
 
-export function obtenerClientes() {
-  return leerLocal(CLAVES.CLIENTES, []);
-}
-
-export function usuarioExiste(usuario) {
-  const esInterno = USUARIOS_INTERNOS.some((u) => u.usuario === usuario);
-  const esCliente = obtenerClientes().some((c) => c.usuario === usuario);
-  return esInterno || esCliente;
-}
-
-// Devuelve la sesión { usuario, rol, nombre } si las credenciales son correctas, o null.
-export function autenticar(usuario, password) {
-  const interno = USUARIOS_INTERNOS.find((u) => u.usuario === usuario && u.password === password);
-  if (interno) {
-    return { usuario: interno.usuario, rol: interno.rol, nombre: interno.nombre };
-  }
-  const cliente = obtenerClientes().find((c) => c.usuario === usuario && c.password === password);
-  if (cliente) {
-    return { usuario: cliente.usuario, rol: ROLES.CLIENTE, nombre: cliente.nombre };
-  }
-  return null;
-}
-
-export function registrarCliente({ nombre, usuario, password }) {
-  if (usuarioExiste(usuario)) {
-    return { ok: false, error: 'Ese nombre de usuario ya está en uso, elige otro.' };
-  }
-  const clientes = obtenerClientes();
-  clientes.push({ nombre, usuario, password });
-  guardarLocal(CLAVES.CLIENTES, clientes);
-  return { ok: true };
-}
-
-// --- Sesión (dura mientras la pestaña esté abierta) ---
-// Limitación conocida: sessionStorage es por pestaña. Se resolverá con un
-// token de sesión validado en el servidor cuando exista backend.
 export function obtenerSesion() {
-  return leerSesionNavegador(CLAVES.SESION, null);
+  try {
+    const datos = JSON.parse(localStorage.getItem(CLAVE_AUTH));
+    if (!datos?.accessToken || !datos?.refreshToken || !roles[datos.rol]) return null;
+    return { ...datos, usuario: datos.username, rol: roles[datos.rol] };
+  } catch { return null; }
 }
-
-export function guardarSesion(sesion) {
-  guardarSesionNavegador(CLAVES.SESION, sesion);
-}
-
-export function cerrarSesion() {
-  borrarSesionNavegador(CLAVES.SESION);
-}
-
-// A qué página va cada rol al iniciar sesión (o si ya la tiene iniciada)
-export function rutaInicioPorRol(rol) {
-  if (rol === ROLES.CLIENTE) return '/';
-  if (rol === ROLES.OPERADOR) return '/operador';
-  if (rol === ROLES.ADMIN) return '/admin';
-  return '/login';
-}
+export function guardarSesion(datos) { localStorage.setItem(CLAVE_AUTH, JSON.stringify(datos)); window.dispatchEvent(new Event('sesion-actualizada')); }
+export function borrarSesion() { localStorage.removeItem(CLAVE_AUTH); window.dispatchEvent(new Event('sesion-expirada')); }
+export async function autenticar(usuario, password) { const { data } = await clienteApi.post('/auth/login', { usuario, password }); guardarSesion(data); return obtenerSesion(); }
+export async function registrarCliente({ nombre, usuario, password }) { await clienteApi.post('/auth/registro', { nombre, usuario, password }); return { ok: true }; }
+export async function cerrarSesion() { const token = obtenerSesion()?.refreshToken; try { if (token) await clienteApi.post('/auth/logout', { refreshToken: token }); } finally { borrarSesion(); } }
+export function rutaInicioPorRol(rol) { if (rol === ROLES.CLIENTE) return '/'; if (rol === ROLES.OPERADOR) return '/operador'; if (rol === ROLES.ADMIN) return '/admin'; return '/login'; }
+// Vista administrativa local provisional; no autentica ni otorga permisos del servidor.
+export function obtenerUsuariosAdministracion() { if (obtenerSesion()?.rol !== ROLES.ADMIN) return []; return leerLocal(CLAVES.CLIENTES, []).map(c => ({ nombre: c.nombre, usuario: c.usuario, rol: ROLES.CLIENTE })); }

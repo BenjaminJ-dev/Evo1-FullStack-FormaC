@@ -1,3 +1,4 @@
+import { obtenerProductoCompra } from '../services/productosServicio';
 // src/components/Carrito.jsx
 // Muestra los ítems del carrito, permite editar su cantidad o quitarlos, y
 // confirmar el pedido. Es un componente "tonto": no guarda estado propio,
@@ -6,9 +7,10 @@
 // Props: items, total, cantidadTotal, maximo, onEditar, onQuitar, onConfirmar
 import Table from 'react-bootstrap/Table';
 import Button from 'react-bootstrap/Button';
-import { formatearPesos, obtenerProducto } from '../constantes';
+import { formatearPesos } from '../constantes';
 
-export default function Carrito({ items, total, cantidadTotal, maximo, onEditar, onQuitar, onConfirmar }) {
+export default function Carrito({ items, total, cantidadTotal, maximo, onEditar, onQuitar, onConfirmar, procesando = false, productosDisponibles = null }) {
+  const hayNoDisponibles = productosDisponibles?.length >= 0 && items.some(item => !productosDisponibles.some(p => p.id === item.cilindro));
   return (
     <section className="bg-white p-4 rounded border">
       <h2 className="h4">Tu carrito</h2>
@@ -28,19 +30,20 @@ export default function Carrito({ items, total, cantidadTotal, maximo, onEditar,
           </thead>
           <tbody>
             {items.map((item) => {
-              const producto = obtenerProducto(item.cilindro);
+              const vigente = productosDisponibles?.find(p => p.id === item.cilindro);
+              const producto = productosDisponibles ? (vigente ?? { nombre: `Producto ${item.cilindro} no disponible` }) : (obtenerProductoCompra(item.cilindro) ?? { nombre: item.nombre ?? item.cilindro });
               return (
                 <tr key={item.cilindro}>
                   <td>
                     {producto.nombre}
-                    <div className="text-muted small">{formatearPesos(item.precioUnitario)} c/u</div>
+                    <div className="text-muted small">{vigente || !productosDisponibles ? `${formatearPesos(item.precioUnitario)} c/u` : 'Sin precio vigente'}</div>
                   </td>
                   <td className="text-nowrap">
                     <Button
                       size="sm"
                       variant="outline-secondary"
                       aria-label={`Quitar una unidad de ${producto.nombre}`}
-                      disabled={item.cantidad <= 1}
+                      disabled={procesando || item.cantidad <= 1}
                       onClick={() => onEditar(item.cilindro, item.cantidad - 1)}
                     >
                       −
@@ -50,17 +53,19 @@ export default function Carrito({ items, total, cantidadTotal, maximo, onEditar,
                       size="sm"
                       variant="outline-secondary"
                       aria-label={`Agregar una unidad de ${producto.nombre}`}
+                      disabled={procesando}
                       onClick={() => onEditar(item.cilindro, item.cantidad + 1)}
                     >
                       +
                     </Button>
                   </td>
-                  <td>{formatearPesos(item.cantidad * item.precioUnitario)}</td>
+                  <td>{vigente || !productosDisponibles ? formatearPesos(item.cantidad * item.precioUnitario) : '—'}</td>
                   <td>
                     <Button
                       size="sm"
                       variant="outline-danger"
                       aria-label={`Quitar ${producto.nombre} del carrito`}
+                      disabled={procesando}
                       onClick={() => onQuitar(item.cilindro)}
                     >
                       Quitar
@@ -73,7 +78,7 @@ export default function Carrito({ items, total, cantidadTotal, maximo, onEditar,
           <tfoot>
             <tr>
               <th colSpan={2}>Total</th>
-              <th colSpan={2}>{formatearPesos(total)}</th>
+              <th colSpan={2}>{hayNoDisponibles ? 'Pendiente de revisión' : formatearPesos(total)}</th>
             </tr>
           </tfoot>
         </Table>
@@ -82,10 +87,10 @@ export default function Carrito({ items, total, cantidadTotal, maximo, onEditar,
       <Button
         variant="primary"
         className="w-100"
-        disabled={items.length === 0}
+        disabled={items.length === 0 || procesando || hayNoDisponibles}
         onClick={onConfirmar}
       >
-        Confirmar pedido
+        {procesando ? 'Enviando pedido...' : 'Confirmar pedido'}
       </Button>
     </section>
   );

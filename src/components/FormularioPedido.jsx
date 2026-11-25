@@ -11,7 +11,7 @@
 import { useState } from 'react';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
-import { PRODUCTOS_BASE } from '../constantes';
+import { obtenerProductosActivos } from '../services/productosServicio';
 
 export default function FormularioPedido({
   entrega,
@@ -19,6 +19,8 @@ export default function FormularioPedido({
   onAgregar,
   cilindroInicial = '',
   maximo,
+  procesando = false,
+  productos = obtenerProductosActivos(),
 }) {
   const [cilindro, setCilindro] = useState(cilindroInicial);
   const [cantidad, setCantidad] = useState('1');
@@ -35,6 +37,7 @@ export default function FormularioPedido({
 
   return (
     <Form onSubmit={agregar} noValidate>
+      <fieldset disabled={procesando} className="border-0 p-0 m-0 w-100">
       <h3 className="h5">Datos de entrega</h3>
       <Form.Group className="mb-3" controlId="pedidoNombre">
         <Form.Label>Nombre completo</Form.Label>
@@ -74,7 +77,7 @@ export default function FormularioPedido({
         <Form.Label>Tipo de cilindro</Form.Label>
         <Form.Select value={cilindro} onChange={(e) => setCilindro(e.target.value)}>
           <option value="">Selecciona un cilindro</option>
-          {PRODUCTOS_BASE.map((producto) => (
+          {productos.map((producto) => (
             <option key={producto.id} value={producto.id}>{producto.nombre}</option>
           ))}
         </Form.Select>
@@ -92,6 +95,7 @@ export default function FormularioPedido({
       <Button type="submit" variant="outline-primary" className="w-100">
         Agregar al carrito
       </Button>
+      </fieldset>
     </Form>
   );
 }

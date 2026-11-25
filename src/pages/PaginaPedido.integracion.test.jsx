@@ -1,0 +1,41 @@
+/** @vitest-environment-options {"url":"http://localhost:5173/"} */
+import { it, expect, vi } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
+import { SesionProvider } from '../context/SesionContext';
+import { MensajeProvider } from '../context/MensajeContext';
+import { CarritoProvider } from '../context/CarritoContext';
+import BannerMensaje from '../components/BannerMensaje';
+import PaginaPedido from './PaginaPedido';
+import PaginaMisPedidos from './PaginaMisPedidos';
+import { clienteApi } from '../services/clienteApi';
+import { autenticar } from '../services/usuariosServicio';
+import { obtenerMisPedidosApi } from '../services/pedidosApi';
+
+it.skipIf(process.env.RUN_REAL_API !== '1')('crea desde React y consulta un pedido real en H2', async () => {
+  const usuario = `prueba${Date.now()}`;
+  await clienteApi.post('/auth/registro', { usuario, nombre: 'Cliente Prueba', password: 'clave123' });
+  await autenticar(usuario, 'clave123');
+  const ui = userEvent.setup();
+  const vista = render(<MemoryRouter initialEntries={['/pedido?cilindro=5KG']}><SesionProvider><MensajeProvider><BannerMensaje /><CarritoProvider><PaginaPedido /></CarritoProvider></MensajeProvider></SesionProvider></MemoryRouter>);
+  await ui.type(screen.getByLabelText(/Teléfono/), '912345678');
+  await ui.type(screen.getByLabelText('Dirección'), 'Calle de prueba 123');
+  await ui.click(screen.getByRole('button', { name: 'Agregar al carrito' }));
+  await ui.selectOptions(screen.getByLabelText('Tipo de cilindro'), '11KG');
+  await ui.click(screen.getByRole('button', { name: 'Agregar al carrito' }));
+  await ui.click(screen.getByRole('button', { name: 'Confirmar pedido' }));
+  expect(await screen.findByText('Pedido registrado correctamente.')).toBeInTheDocument();
+  expect((await obtenerMisPedidosApi())[0]).toMatchObject({ nombre: 'Cliente Prueba', direccion: 'Calle de prueba 123' });
+  expect(screen.getByText('Tu carrito está vacío. Agrega un cilindro desde el formulario.')).toBeInTheDocument();
+  vista.unmount();
+  const confirmar = vi.spyOn(window, 'confirm').mockReturnValue(true);
+  render(<MemoryRouter><MensajeProvider><BannerMensaje /><PaginaMisPedidos /></MensajeProvider></MemoryRouter>);
+  await ui.click(await screen.findByRole('button', { name: 'Ver detalle' }));
+  expect(await screen.findByRole('complementary', { name: 'Detalle del pedido' })).toHaveTextContent('Cilindro GLP 5KG');
+  await ui.click(screen.getByRole('button', { name: 'Cancelar Cilindro GLP 5KG del pedido' }));
+  await waitFor(async () => expect((await obtenerMisPedidosApi())[0].items[0].cancelado).toBe(true));
+  await ui.click(screen.getByRole('button', { name: 'Cancelar pedido' }));
+  await waitFor(async () => expect((await obtenerMisPedidosApi())[0].estado).toBe('Cancelado'));
+  confirmar.mockRestore();
+});

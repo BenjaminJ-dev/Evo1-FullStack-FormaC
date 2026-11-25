@@ -1,0 +1,81 @@
+/** @vitest-environment-options {"url":"http://localhost:5173/"} */
+import { it, expect, vi } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { MensajeProvider } from '../context/MensajeContext';
+import { SesionProvider } from '../context/SesionContext';
+import { CarritoProvider } from '../context/CarritoContext';
+import { MemoryRouter } from 'react-router-dom';
+import BannerMensaje from '../components/BannerMensaje';
+import PaginaPedido from './PaginaPedido';
+import PaginaOperador from './PaginaOperador';
+import PaginaAdmin from './PaginaAdmin';
+import { clienteApi } from '../services/clienteApi';
+import { autenticar, guardarSesion } from '../services/usuariosServicio';
+import { crearPedidoApi, obtenerPedidosGestionApi, obtenerMisPedidosApi } from '../services/pedidosApi';
+import { obtenerInventarioApi } from '../services/inventarioApi';
+import { obtenerIndicadoresApi, guardarProductoApi, desactivarProductoApi, obtenerProductosAdminApi } from '../services/adminApi';
+import { obtenerCatalogoPublico } from '../services/productosServicio';
+
+it.skipIf(process.env.RUN_REAL_API !== '1')('integra operador, inventario y administrador con Spring Boot y H2', async () => {
+  const { data: operador } = await clienteApi.post('/auth/login', { usuario: 'operador', password: 'PruebaOperador123!' });
+  guardarSesion(operador);
+  const base5 = (await obtenerInventarioApi()).find(p => p.id === '5KG').pendiente;
+  const stockInicial11 = (await obtenerInventarioApi()).find(p => p.id === '11KG').total;
+  const usuario = `gestion${Date.now()}`;
+  await clienteApi.post('/auth/registro', { usuario, nombre: 'Entrega Integracion', password: 'clave123' });
+  const cliente = await autenticar(usuario, 'clave123');
+  const pedido = await crearPedidoApi({ nombre: 'Entrega Integracion', telefono: '912345678', direccion: 'Calle 1', items: [
+    { cilindro: '5KG', cantidad: 2, precioUnitario: 6000 }, { cilindro: '11KG', cantidad: 1, precioUnitario: 11000 },
+  ] });
+  await expect(clienteApi.get('/inventario')).rejects.toMatchObject({ response: { status: 403 } });
+  await expect(clienteApi.get('/admin/indicadores')).rejects.toMatchObject({ response: { status: 403 } });
+
+  guardarSesion(operador);
+  expect((await obtenerPedidosGestionApi()).some(p => p.id === pedido.id)).toBe(true);
+  expect((await obtenerInventarioApi()).find(p => p.id === '5KG').pendiente).toBe(base5 + 2);
+  const vistaOperador = render(<MensajeProvider><PaginaOperador /></MensajeProvider>);
+  expect((await screen.findAllByText('Entrega Integracion')).length).toBeGreaterThan(0);
+  const ui = userEvent.setup();
+  const confirmar = vi.spyOn(window, 'confirm').mockReturnValue(true);
+  await ui.click(screen.getAllByRole('button', { name: 'Cancelar Cilindro GLP 5KG del pedido' })[0]);
+  await waitFor(async () => expect((await obtenerInventarioApi()).find(p => p.id === '5KG').pendiente).toBe(base5));
+  await ui.click((await screen.findAllByRole('button', { name: 'Marcar en camino' }))[0]);
+  await ui.click((await screen.findAllByRole('button', { name: 'Marcar entregado' }))[0]);
+  await waitFor(async () => expect((await obtenerInventarioApi()).find(p => p.id === '11KG').total).toBe(stockInicial11 - 1));
+  confirmar.mockRestore();
+  vistaOperador.unmount();
+  await expect(clienteApi.get('/admin/indicadores')).rejects.toMatchObject({ response: { status: 403 } });
+  expect((await obtenerInventarioApi()).find(p => p.id === '5KG').pendiente).toBe(base5);
+  expect((await obtenerInventarioApi()).find(p => p.id === '11KG').total).toBe(stockInicial11 - 1);
+
+  const { data: admin } = await clienteApi.post('/auth/login', { usuario: 'admin', password: 'PruebaAdmin123!' });
+  guardarSesion(admin);
+  const indicadores = await obtenerIndicadoresApi();
+  expect(indicadores.ENTREGADO).toBeGreaterThanOrEqual(1);
+  const vistaAdmin = render(<MensajeProvider><PaginaAdmin /></MensajeProvider>);
+  expect(await screen.findByText('Pedidos entregados')).toBeInTheDocument();
+  vistaAdmin.unmount();
+  const id = `T${Date.now()}`;
+  await guardarProductoApi({ id, nombre: 'Producto de prueba', descripcion: 'Gas', precio: 100, stock: 2 });
+  await guardarProductoApi({ id: 'NO_CAMBIA', nombre: 'Producto editado', descripcion: 'Gas', precio: 200 }, id);
+  expect((await obtenerProductosAdminApi()).find(p => p.id === id).precio).toBe(200);
+  expect((await obtenerCatalogoPublico()).some(p => p.id === id)).toBe(true);
+  const { data: clienteNuevoLogin } = await clienteApi.post('/auth/login', { usuario, password: 'clave123' });
+  guardarSesion(clienteNuevoLogin);
+  const vistaCompra = render(<MemoryRouter><SesionProvider><MensajeProvider><BannerMensaje /><CarritoProvider><PaginaPedido /></CarritoProvider></MensajeProvider></SesionProvider></MemoryRouter>);
+  await screen.findByRole('option', { name: 'Producto editado' });
+  await ui.type(screen.getByLabelText(/Teléfono/), '912345678');
+  await ui.type(screen.getByLabelText('Dirección'), 'Calle 2');
+  await ui.selectOptions(screen.getByLabelText('Tipo de cilindro'), id);
+  await ui.click(screen.getByRole('button', { name: 'Agregar al carrito' }));
+  await ui.click(screen.getByRole('button', { name: 'Confirmar pedido' }));
+  expect(await screen.findByText('Pedido registrado correctamente.')).toBeInTheDocument();
+  expect((await obtenerMisPedidosApi()).some(p => p.items.some(item => item.cilindro === id))).toBe(true);
+  vistaCompra.unmount();
+  guardarSesion(admin);
+  await desactivarProductoApi(id);
+  expect((await obtenerProductosAdminApi()).find(p => p.id === id).activo).toBe(false);
+  expect((await obtenerCatalogoPublico()).some(p => p.id === id)).toBe(false);
+  expect(cliente.rol).toBe('cliente');
+});

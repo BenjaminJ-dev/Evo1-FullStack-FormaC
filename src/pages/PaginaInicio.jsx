@@ -1,4 +1,4 @@
-// src/pages/PaginaInicio.jsx  (ruta: /, solo clientes)
+// src/pages/PaginaInicio.jsx  (ruta pública: /)
 import { useNavigate } from 'react-router-dom';
 import Button from 'react-bootstrap/Button';
 import imagenCamion from '../assets/camion-gas.svg';

@@ -1,3 +1,4 @@
+import { obtenerProducto, obtenerProductos } from '../services/productosServicio';
 // src/services/pedidosServicio.js
 // Pedidos e inventario. TODAS las reglas de negocio de pedidos viven aquí,
 // cada una en un solo lugar; los componentes solo las llaman.
@@ -9,7 +10,7 @@
 // TODO backend: cada función de este archivo pasará a ser una petición a la
 // API (GET/POST/PATCH /pedidos, /inventario). La firma de las funciones
 // puede mantenerse igual para que los componentes no cambien.
-import { CLAVES, ESTADOS, PRODUCTOS_BASE, obtenerProducto } from '../constantes';
+import { CLAVES, ESTADOS, MAX_CANTIDAD, PRODUCTOS_BASE } from '../constantes';
 import { leerLocal, guardarLocal } from './almacenamiento';
 
 // ---------------------------------------------------------------
@@ -98,7 +99,7 @@ export function calcularDisponible(idProducto, pedidos = obtenerPedidos()) {
 export function obtenerResumenInventario() {
   const totales = obtenerTotales();
   const pedidos = obtenerPedidos();
-  return PRODUCTOS_BASE.map((producto) => {
+  return obtenerProductos().map((producto) => {
     const total = totales[producto.id] ?? 0;
     const pendiente = calcularPendiente(producto.id, pedidos);
     return {
@@ -138,6 +139,7 @@ function descontarStock(items) {
 // alguno, se rechaza el pedido completo.
 // Devuelve { ok: true, pedido } o { ok: false, sinStock: [nombres] }
 export function crearPedido({ usuario, nombre, telefono, direccion, items }) {
+  if (!items.length || items.reduce((n, i) => n + i.cantidad, 0) > MAX_CANTIDAD || items.some(i => !obtenerProducto(i.cilindro)?.activo || !Number.isInteger(i.cantidad) || i.cantidad < 1)) return { ok: false, error: 'Hay productos inactivos o cantidades inválidas. Ajusta tu carrito.' };
   const sinStock = validarStockPedido(items);
   if (sinStock.length > 0) {
     return { ok: false, sinStock };
@@ -155,7 +157,8 @@ export function crearPedido({ usuario, nombre, telefono, direccion, items }) {
     items: items.map((item) => ({
       cilindro: item.cilindro,
       cantidad: item.cantidad,
-      precioUnitario: item.precioUnitario,
+      precioUnitario: obtenerProducto(item.cilindro).precio,
+      nombre: obtenerProducto(item.cilindro).nombre,
       cancelado: false,
     })),
   };

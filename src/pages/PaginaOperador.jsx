@@ -1,70 +1,57 @@
-// src/pages/PaginaOperador.jsx  (ruta: /operador, solo operador)
-// Ve todos los pedidos, avanza su estado o los cancela, y revisa el inventario.
+import { useCallback, useEffect, useRef, useState } from 'react';
 import TablaPedidos from '../components/TablaPedidos';
 import TablaInventario from '../components/TablaInventario';
-import usePedidos from '../hooks/usePedidos';
-import useInventario from '../hooks/useInventario';
 import { useMensaje } from '../context/MensajeContext';
-import { avanzarEstado, cancelarItem, cancelarPedido } from '../services/pedidosServicio';
+import { obtenerPedidosGestionApi, avanzarPedidoApi, cancelarDetalleApi, cancelarPedidoApi } from '../services/pedidosApi';
+import { obtenerInventarioApi } from '../services/inventarioApi';
+import { obtenerCatalogoPublico } from '../services/productosServicio';
+import { mensajeErrorApi } from '../services/mensajeErrorApi';
+import { siguienteEstado } from '../services/pedidosServicio';
 
 export default function PaginaOperador() {
   const { mostrarMensaje } = useMensaje();
-  const { pedidos, recargar: recargarPedidos } = usePedidos();
-  const { resumen, recargar: recargarInventario } = useInventario();
-
-  // Tras cualquier acción se vuelven a leer pedidos e inventario,
-  // así las 3 columnas se actualizan al instante.
-  const refrescar = () => {
-    recargarPedidos();
-    recargarInventario();
+  const [pedidos, setPedidos] = useState([]);
+  const [resumen, setResumen] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState('');
+  const [procesando, setProcesando] = useState(false);
+  const bloqueo = useRef(false);
+  const recargar = useCallback(async () => {
+    setCargando(true);
+    try {
+      const [lista, stock, catalogo] = await Promise.all([obtenerPedidosGestionApi(), obtenerInventarioApi(), obtenerCatalogoPublico()]);
+      setPedidos(lista); setResumen(stock.map(item => ({ ...item, precio: catalogo.find(p => p.id === item.id)?.precio }))); setError('');
+    } catch (fallo) { setError(mensajeErrorApi(fallo)); }
+    finally { setCargando(false); }
+  }, []);
+  useEffect(() => { recargar(); }, [recargar]);
+  const ejecutar = async (accion, texto) => {
+    if (bloqueo.current) return;
+    bloqueo.current = true; setProcesando(true);
+    try { await accion(); await recargar(); mostrarMensaje(texto, 'exito'); }
+    catch (fallo) { mostrarMensaje(mensajeErrorApi(fallo), 'error'); }
+    finally { bloqueo.current = false; setProcesando(false); }
   };
-
-  const avanzar = (id) => {
-    const resultado = avanzarEstado(id);
-    if (resultado.ok) {
-      mostrarMensaje(`Pedido de ${resultado.pedido.nombre} marcado como ${resultado.pedido.estado}.`, 'exito');
-      refrescar();
-    }
+  const avanzar = id => {
+    const pedido = pedidos.find(p => p.id === id);
+    const destino = siguienteEstado(pedido?.estado);
+    if (destino) ejecutar(() => avanzarPedidoApi(id, destino), `Pedido marcado como ${destino}.`);
   };
-
-  const cancelar = (resultado, textoExito) => {
-    if (resultado.ok) {
-      mostrarMensaje(textoExito, 'exito');
-      refrescar();
-    } else {
-      mostrarMensaje('No se pudo cancelar: el pedido ya no está Pendiente.', 'error');
-    }
-  };
-
-  return (
-    <>
-      <section className="bg-white p-4 rounded border mb-4">
-        <h2>Pedidos realizados</h2>
-        <p>
-          Revisa los pedidos de los clientes, actualiza su estado de entrega o cancélalos
-          (o cancela uno de sus cilindros) mientras estén &quot;Pendiente&quot;.
-        </p>
-        {pedidos.length === 0 ? (
-          <p className="mb-0">Todavía no hay pedidos registrados.</p>
-        ) : (
-          <TablaPedidos
-            pedidos={pedidos}
-            modo="operador"
-            onAvanzar={avanzar}
-            onCancelarItem={(id, indice) => cancelar(cancelarItem(id, indice), 'Cilindro cancelado.')}
-            onCancelarPedido={(id) => cancelar(cancelarPedido(id), 'Pedido cancelado.')}
-          />
-        )}
-      </section>
-
-      <section className="bg-white p-4 rounded border mb-4">
-        <h2>Inventario de productos</h2>
-        <p>
-          Stock real, comprometido en pedidos pendientes y disponible para nuevos pedidos.
-          Se cumple siempre: <strong>Total = Pendiente a enviar + Disponible a enviar</strong>.
-        </p>
-        <TablaInventario resumen={resumen} />
-      </section>
-    </>
-  );
+  return <>
+    <section className="bg-white p-4 rounded border mb-4">
+      <h2>Pedidos realizados</h2>
+      <p>Revisa pedidos, avanza el estado y cancela mientras estén pendientes.</p>
+      {cargando && <p role="status">Cargando pedidos e inventario...</p>}
+      {error && <p role="alert">{error} <button type="button" onClick={recargar}>Reintentar</button></p>}
+      {!cargando && !error && (pedidos.length ? <TablaPedidos pedidos={pedidos} modo="operador" procesando={procesando}
+        onAvanzar={avanzar}
+        onCancelarItem={(id, detalleId) => ejecutar(() => cancelarDetalleApi(id, detalleId), 'Cilindro cancelado.')}
+        onCancelarPedido={id => ejecutar(() => cancelarPedidoApi(id), 'Pedido cancelado.')} /> : <p>Todavía no hay pedidos registrados.</p>)}
+    </section>
+    <section className="bg-white p-4 rounded border mb-4">
+      <h2>Inventario de productos</h2>
+      <p>Stock físico, comprometido y disponible según H2.</p>
+      {!cargando && !error && (resumen.length ? <TablaInventario resumen={resumen} /> : <p>No hay inventario registrado.</p>)}
+    </section>
+  </>;
 }

@@ -14,7 +14,7 @@ export default function FormularioLogin() {
   const [usuario, setUsuario] = useState('');
   const [password, setPassword] = useState('');
 
-  const enviar = (evento) => {
+  const enviar = async (evento) => {
     evento.preventDefault();
     const nombreUsuario = usuario.trim();
 
@@ -27,12 +27,8 @@ export default function FormularioLogin() {
       return;
     }
 
-    const sesion = autenticar(nombreUsuario, password);
-    if (!sesion) {
-      mostrarMensaje('Usuario o contraseña incorrectos.', 'error');
-      return;
-    }
-    iniciarSesion(sesion);
+    try { iniciarSesion(await autenticar(nombreUsuario, password)); }
+    catch (error) { mostrarMensaje(error.response?.status === 401 ? 'Usuario o contraseña incorrectos.' : 'No se pudo conectar con el servidor.', 'error'); }
   };
 
   return (

@@ -1,5 +1,5 @@
 // src/pages/PaginaRegistro.jsx  (ruta: /registro)
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import FormularioRegistro from '../components/FormularioRegistro';
@@ -7,10 +7,11 @@ import { useSesion } from '../context/SesionContext';
 import { rutaInicioPorRol } from '../services/usuariosServicio';
 
 export default function PaginaRegistro() {
+  const { state } = useLocation();
   const { sesion } = useSesion();
 
   if (sesion) {
-    return <Navigate to={rutaInicioPorRol(sesion.rol)} replace />;
+    return <Navigate to={sesion.rol === 'cliente' && state?.volverCompra ? '/pedido' : rutaInicioPorRol(sesion.rol)} replace />;
   }
 
   return (
@@ -21,7 +22,7 @@ export default function PaginaRegistro() {
           <p>Regístrate para poder iniciar sesión y realizar tus pedidos</p>
           <FormularioRegistro />
           <p className="mt-3 mb-0">
-            ¿Ya tienes cuenta? <Link to="/login">Inicia sesión aquí</Link>
+            ¿Ya tienes cuenta? <Link state={state} to="/login">Inicia sesión aquí</Link>
           </p>
         </section>
       </Col>

@@ -2,7 +2,7 @@
 // Registro de clientes nuevos. Valida cada campo y guarda al cliente;
 // después lleva al login para que inicie sesión con la cuenta creada.
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import { useMensaje } from '../context/MensajeContext';
@@ -10,6 +10,7 @@ import { registrarCliente } from '../services/usuariosServicio';
 import { validarUsuario } from '../services/validaciones';
 
 export default function FormularioRegistro() {
+  const { state } = useLocation();
   const navigate = useNavigate();
   const { mostrarMensaje } = useMensaje();
   const [datos, setDatos] = useState({ nombre: '', usuario: '', password: '', confirmar: '' });
@@ -17,7 +18,7 @@ export default function FormularioRegistro() {
   const cambiar = (campo) => (e) =>
     setDatos((actuales) => ({ ...actuales, [campo]: e.target.value }));
 
-  const enviar = (evento) => {
+  const enviar = async (evento) => {
     evento.preventDefault();
     const nombre = datos.nombre.trim();
     const usuario = datos.usuario.trim();
@@ -46,15 +47,12 @@ export default function FormularioRegistro() {
       return;
     }
 
-    const resultado = registrarCliente({ nombre, usuario, password: datos.password });
-    if (!resultado.ok) {
-      mostrarMensaje(resultado.error, 'error');
-      return;
-    }
+    try { await registrarCliente({ nombre, usuario, password: datos.password }); }
+    catch (error) { mostrarMensaje(error.response?.status === 409 ? 'Ese nombre de usuario ya está en uso, elige otro.' : 'No se pudo crear la cuenta. Comprueba el servidor.', 'error'); return; }
 
     mostrarMensaje('Cuenta creada correctamente. Serás redirigido para iniciar sesión...', 'exito');
     // Pequeña espera para alcanzar a leer el aviso
-    setTimeout(() => navigate('/login'), 1500);
+    setTimeout(() => navigate('/login', { state }), 1500);
   };
 
   return (

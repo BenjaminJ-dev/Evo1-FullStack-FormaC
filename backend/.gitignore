@@ -1,0 +1,10 @@
+target/
+data/
+*.log
+.env
+.env.*
+!.env.example
+__pycache__/
+*.pyc
+*.mv.db
+*.trace.db

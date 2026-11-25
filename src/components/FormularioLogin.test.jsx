@@ -7,6 +7,10 @@ import FormularioLogin from './FormularioLogin';
 import BannerMensaje from './BannerMensaje';
 import { SesionProvider } from '../context/SesionContext';
 import { MensajeProvider } from '../context/MensajeContext';
+import { clienteApi } from '../services/clienteApi';
+import { vi } from 'vitest';
+
+vi.mock('../services/clienteApi', () => ({ clienteApi: { post: vi.fn() } }));
 
 function renderizarLogin() {
   return render(
@@ -21,6 +25,7 @@ function renderizarLogin() {
 
 describe('FormularioLogin', () => {
   it('muestra un aviso claro por cada error: campos vacíos y credenciales incorrectas', async () => {
+    clienteApi.post.mockRejectedValue({ response: { status: 401 } });
     const usuario = userEvent.setup();
     renderizarLogin();
 

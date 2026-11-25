@@ -10,8 +10,12 @@
 import { Navigate } from 'react-router-dom';
 import { useSesion } from '../context/SesionContext';
 
-export default function RutaProtegida({ roles, children }) {
-  const { sesion } = useSesion();
+export default function RutaProtegida({ roles, children, permitirVisitante = false }) {
+  const { sesion, validando } = useSesion();
+
+  if (validando) return <p role="status">Validando sesión...</p>;
+
+  if (!sesion && permitirVisitante) return children;
 
   if (!sesion || !roles.includes(sesion.rol)) {
     return <Navigate to="/login" replace />;

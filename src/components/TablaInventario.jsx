@@ -21,7 +21,7 @@ export default function TablaInventario({ resumen }) {
         {resumen.map((producto) => (
           <tr key={producto.id}>
             <td>{producto.nombre}</td>
-            <td>{formatearPesos(producto.precio)}</td>
+            <td>{producto.precio == null ? '—' : formatearPesos(producto.precio)}</td>
             <td>{producto.total}</td>
             <td>{producto.pendiente}</td>
             <td>{producto.disponible}</td>
