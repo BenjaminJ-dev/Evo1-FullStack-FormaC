@@ -6,7 +6,7 @@ Aplicación académica de FullStack II. React 19 y Axios consumen la API REST de
 
 - Windows 10/11 con PowerShell.
 - Node.js 24 (probado con v24.22.0) y npm (probado con 11.19.1).
-- JDK 21 (probado con Temurin 21.0.13) y la variable `JAVA_HOME` apuntando a él.
+- JDK 21 con la variable `JAVA_HOME` apuntando a él (probado con Temurin 21.0.13 y con OpenJDK 21.0.2).
 - Conexión a internet: el primer arranque descarga dependencias de Maven Central y npm.
 - Puertos `8080` (backend) y `5173` (frontend) libres.
 - Navegador web actualizado.
@@ -20,7 +20,7 @@ java -version
 $env:JAVA_HOME
 ```
 
-Resultado esperado: `node` muestra v24.x, `java` muestra 21.x y `$env:JAVA_HOME` muestra la ruta del JDK. Si `$env:JAVA_HOME` sale vacío, defínelo con `$env:JAVA_HOME='C:/ruta/a/jdk-21'`.
+Resultado esperado: `node` muestra v24.x, `java` muestra 21.x y `$env:JAVA_HOME` muestra la ruta del JDK (por ejemplo `C:\Users\<usuario>\.jdks\openjdk-21.0.2`). Si `$env:JAVA_HOME` sale vacío, defínelo con `$env:JAVA_HOME='C:/ruta/a/jdk-21'`.
 
 Verifica que los puertos estén libres (sin salida significa libres):
 
@@ -50,7 +50,7 @@ $env:JWT_SECRET.Length
 $env:BOOTSTRAP_ADMIN_PASSWORD
 ```
 
-Resultado esperado: el largo del secreto es `48` (el mínimo exigido es 32) y se muestra la clave del administrador.
+Resultado esperado: el largo del secreto es `48` (el mínimo exigido es 32) y se muestra la clave del administrador (`Admin-Demo-2026!`).
 
 Arranca el servidor (siempre desde `backend/`, para que la ruta relativa de H2 sea estable):
 
@@ -59,8 +59,9 @@ Arranca el servidor (siempre desde `backend/`, para que la ruta relativa de H2 s
 ```
 
 - La primera vez descarga Maven y dependencias; puede tardar varios minutos.
-- La terminal queda ocupada: es normal.
-- Resultado esperado: aparece una línea `Started ElVolcanApplication in N seconds`.
+- La terminal queda ocupada: es normal. No la cierres mientras uses la aplicación.
+- Resultado esperado: aparece una línea `Started ElVolcanApplication in N seconds` (en la prueba tardó unos 8 segundos).
+- Al final del log pueden aparecer dos avisos `WARN` de SpringDoc sobre `/v3/api-docs` y `/swagger-ui.html`. Son normales y se pueden ignorar.
 
 Comprueba que responde, desde **otra** terminal:
 
@@ -72,16 +73,17 @@ Resultado esperado: `200`.
 
 ### Paso 2. Frontend (terminal 2)
 
-Desde la **raíz** del proyecto (donde está `package.json`):
+Abre una segunda terminal de PowerShell y ubícate en la **raíz** del proyecto (donde está `package.json`, no dentro de `backend/`):
 
 ```powershell
+cd "C:\ruta\al\proyecto\Evo1-FullStack-FormaC-main"
 npm ci
 npm run dev
 ```
 
-- `npm ci` instala las versiones exactas de `package-lock.json` (177 paquetes aprox.).
+- `npm ci` instala las versiones exactas de `package-lock.json` (177 paquetes aprox.). `npm install` también funciona; si ya lo ejecutaste, no hace falta repetir la instalación y basta con `npm run dev`.
 - Es normal que npm informe una vulnerabilidad de severidad alta. No ejecutes `npm audit fix`: modificaría `package-lock.json`.
-- Resultado esperado: Vite muestra `Local: http://localhost:5173/`.
+- Resultado esperado: Vite muestra `Local: http://localhost:5173/` y la aplicación abre en el navegador.
 
 Frontend: `http://localhost:5173`. API: `http://localhost:8080/api/v1`. `VITE_API_URL` permite cambiar la URL de Axios; el valor predeterminado es `http://localhost:8080/api/v1` (véase `.env.example`). CORS permite `http://localhost:5173`.
 
@@ -118,6 +120,8 @@ Notas importantes:
 { "usuario": "admin", "password": "Admin-Demo-2026!" }
 ```
 
+   Resultado esperado: código `200` y un JSON con el campo `accessToken`.
+
 3. Copia el valor de `accessToken` de la respuesta.
 4. Pulsa **Authorize**, pega el token en **bearerAuth** y confirma.
 5. Prueba una ruta protegida, por ejemplo `GET /api/v1/admin/usuarios`. Resultado esperado: código `200` con la lista de usuarios.
@@ -126,7 +130,7 @@ El access token dura 15 minutos; si expira, repite el login. El refresh dura sie
 
 ## Consola H2 (opcional, solo revisión local)
 
-La consola de H2 permite ver las tablas de la base. Está **apagada por defecto** por seguridad y se enciende con una variable de entorno, antes de arrancar el backend (terminal 1, desde `backend/`):
+La consola de H2 permite ver las tablas de la base. Está **apagada por defecto** por seguridad y se enciende con una variable de entorno, antes de arrancar el backend (terminal 1, desde `backend/`). Si el backend ya estaba corriendo, deténlo primero con `Ctrl + C` (si pregunta `Terminate batch job (Y/N)?`, responde `Y`). Las variables del Paso 1 siguen definidas mientras no cierres esa terminal.
 
 ```powershell
 $env:H2_CONSOLE = 'true'
@@ -145,14 +149,20 @@ Abre `http://localhost:8080/h2-console` y completa:
 | User Name | `sa` |
 | Password | (vacío) |
 
-Pulsa **Connect**. Resultado esperado: se abre la consola con las tablas de la base en el panel izquierdo.
+Pulsa **Connect**. Resultado esperado: se abre la consola con las tablas de la base en el panel izquierdo (`USUARIOS`, `PRODUCTOS`, `PEDIDOS`, etc.).
 
 Notas:
 
-- Cambia el JDBC URL a mano: el valor que propone la pantalla (`jdbc:h2:~/test`) no apunta a esta base.
+- Escribe el JDBC URL a mano y **borra por completo** el valor que traiga el campo. La pantalla puede proponer `jdbc:h2:~/test` o una ruta completa guardada de otra copia del proyecto; ninguna apunta a esta base. En ese caso aparece el error `Database "..." not found, and IFEXISTS=true` (véase "Problemas comunes").
 - La consola corre dentro del mismo proceso del backend, por lo que no choca con el bloqueo del archivo H2. No inicies un segundo proceso sobre `backend/data/`.
 - El servidor escucha solo en `127.0.0.1`. No habilites la consola en un entorno compartido o de producción: da acceso total a la base con el usuario `sa` sin contraseña.
 - Para apagarla, detén el backend, cierra la terminal (o ejecuta `Remove-Item Env:H2_CONSOLE`) y arranca de nuevo.
+
+Consulta de ejemplo para ver los usuarios guardados (no incluye `PASSWORD_HASH`: las claves se almacenan solo como hash):
+
+```sql
+SELECT ID, USUARIO, NOMBRE, ROL, ACTIVO FROM USUARIOS;
+```
 
 ## Arquitectura y uso
 
@@ -198,5 +208,25 @@ La prueba Python requiere `JAVA_HOME` y el JAR generado; usa JWT y H2 temporales
 | El login responde "Usuario o contraseña incorrectos" | La base ya existía con otras claves | Borra `backend/data/` con el backend detenido y arranca de nuevo |
 | El login responde "No se pudo conectar con el servidor" | El backend no está corriendo | Revisa la terminal 1 y el `curl` del Paso 1 |
 | `/h2-console` da 404 | La consola está apagada | Define `H2_CONSOLE='true'` y reinicia el backend |
+| H2 muestra `Database "..." not found, and IFEXISTS=true, so we cant auto-create it` | El campo JDBC URL trae una ruta guardada de otra copia del proyecto o una ruta incorrecta | Borra todo el campo y escribe `jdbc:h2:file:./data/elvolcan`; con el backend iniciado desde `backend/`, esa ruta apunta a la base correcta |
 | H2 informa que el archivo está bloqueado | Hay dos procesos sobre `backend/data/` | Deja un solo backend corriendo |
 | Las variables desaparecieron | Se cerró la terminal | Vuelve a definirlas; no persisten entre ventanas |
+
+## Verificación realizada
+
+Este README se contrastó ejecutando el proyecto en Windows con PowerShell, OpenJDK 21.0.2 y Spring Boot 4.1.0.
+
+Comprobado:
+
+- Backend: arranque con `./mvnw.cmd spring-boot:run` y respuesta `200` en `/api/v1/productos`.
+- Frontend: `npm run dev` y aplicación abierta en `http://localhost:5173`.
+- Swagger: carga de la interfaz y login de `admin` en `POST /api/v1/auth/login`.
+- Consola H2: activación con `H2_CONSOLE` y conexión con `jdbc:h2:file:./data/elvolcan`.
+- Credenciales: inicio de sesión correcto con `admin` y con `operador`.
+
+No comprobado en esa prueba (se conserva el contenido original):
+
+- Versiones exactas de Node.js y npm indicadas en los requisitos.
+- Uso de **Authorize** y rutas protegidas en Swagger.
+- Registro y flujo completo de cliente, pedidos e inventario.
+- Pruebas automáticas (`npm test`, `./mvnw.cmd verify`, `python verificar_persistencia.py`).
